@@ -1,9 +1,9 @@
 from urllib import parse as parse_url
+from http.cookies import SimpleCookie
 
 
 def parse(query: str) -> dict:
-    url = query
-    splitted_url = parse_url.urlsplit(url)
+    splitted_url = parse_url.urlsplit(query)
     return dict(parse_url.parse_qsl(splitted_url.query))
 
 
@@ -16,7 +16,9 @@ if __name__ == '__main__':
 
 
 def parse_cookie(query: str) -> dict:
-    return {}
+    cookie = SimpleCookie()
+    cookie.load(query)
+    return {k: v.value for k, v in cookie.items()}
 
 
 if __name__ == '__main__':
@@ -24,4 +26,15 @@ if __name__ == '__main__':
     assert parse_cookie('') == {}
     assert parse_cookie('name=Dima;age=28;') == {'name': 'Dima', 'age': '28'}
     assert parse_cookie('name=Dima=User;age=28;') == {'name': 'Dima=User', 'age': '28'}
+    assert parse_cookie('test') == {}
+    assert parse_cookie('test=') == {'test': ''}
+    assert parse_cookie(';test=') == {}
+    assert parse_cookie('=test') == {}
+    assert parse_cookie('T=\"test\"') == {'T': 'test'}
+    assert parse_cookie('\"T\"=test') == {}
+    assert parse_cookie('test=test;;param=value') == {'test': 'test'}
+    assert parse_cookie('test=";"') == {'test': ';'}
+    assert parse_cookie('test="param";test="param_2"') == {'test': 'param_2'}
+
+
 
